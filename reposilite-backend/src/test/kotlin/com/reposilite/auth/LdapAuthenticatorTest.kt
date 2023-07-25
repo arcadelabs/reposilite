@@ -41,15 +41,15 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
     fun createLdapServer() {
         this.ldapConfiguration.update {
             LdapSettings(
-                it.enabled,
-                "ldap.domain.com",
-                (1024 + Math.random() * (Short.MAX_VALUE - 1025)).toInt(),
-                "dc=domain,dc=com",
-                "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
-                "search-secret",
-                "cn",
-                "(&(objectClass=person)(ou=Maven Users))",
-                it.userType
+                enabled = it.enabled,
+                hostname = "ldap.domain.com",
+                port = (1024 + Math.random() * (Short.MAX_VALUE - 1025)).toInt(),
+                baseDn = "dc=domain,dc=com",
+                searchUserDn = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
+                searchUserPassword = "search-secret",
+                userAttribute = "cn",
+                userFilter = "(&(objectClass=person)(ou=Maven Users))",
+                userType = it.userType
             )
         }
         this.ldapConfiguration.peek {
@@ -62,16 +62,8 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
             this.ldapServer = InMemoryDirectoryServer(config)
             ldapServer.startListening(it.hostname)
             this.ldapConfiguration.update(
-                LdapSettings(
-                    it.enabled,
-                    ldapServer.getListenAddress(it.hostname).hostAddress,
-                    it.port,
-                    it.baseDn,
-                    it.searchUserDn,
-                    it.searchUserPassword,
-                    it.userAttribute,
-                    it.userFilter,
-                    it.userType
+                it.copy(
+                    hostname = ldapServer.getListenAddress(it.hostname).hostAddress
                 )
             )
 
@@ -96,8 +88,15 @@ internal class LdapAuthenticatorTest : AuthenticationSpecification() {
 
     @Test
     fun `should connect with search user`() {
-        val result = assertOk(authenticator.search("(&(objectClass=person)(cn=Reposilite)(ou=Search Accounts))", "cn"))
-        assertCollectionsEquals(listOf(Pair("cn=Reposilite,ou=Search Accounts,dc=domain,dc=com", mapOf("cn" to listOf("Reposilite")))), result)
+        val result = assertOk(authenticator.search("(&(objectClass=person)(cn=Reposilite)(ou=Search Accounts))", arrayOf(), arrayOf("cn")))
+        assertCollectionsEquals(
+            result,
+            listOf(
+                SearchEntry(
+                    fullName = "cn=Reposilite,ou=Search Accounts,dc=domain,dc=com",
+                    attributes = mapOf("cn" to listOf("Reposilite")))
+            )
+        )
     }
 
     @Test

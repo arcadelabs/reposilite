@@ -23,7 +23,7 @@ plugins {
     jacoco
     kotlin("jvm")
     kotlin("kapt")
-    id("com.coditory.integration-test") version "1.4.4"
+    id("com.coditory.integration-test") version "1.4.5"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.gitlab.arturbosch.detekt").version("1.22.0")
 }
@@ -35,24 +35,28 @@ application {
 dependencies {
     implementation(project(":reposilite-frontend"))
 
-    val detekt = "1.22.0"
+    val detekt = "1.23.0"
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detekt")
 
-    val kotlin = "1.8.20"
+    val kotlin = "1.8.22"
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin")
 
-    val javalin = "5.4.2"
+    val javalin = "5.6.1"
     api("io.javalin:javalin:$javalin")
-    api("io.javalin.community.openapi:javalin-openapi-plugin:$javalin")
-    kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalin")
-    api("io.javalin.community.routing:routing-dsl:$javalin-RC.1")
     api("io.javalin.community.ssl:ssl-plugin:$javalin")
+
+    val javalinOpenApi = "5.6.1"
+    api("io.javalin.community.openapi:javalin-openapi-plugin:$javalinOpenApi")
+    kapt("io.javalin.community.openapi:openapi-annotation-processor:$javalinOpenApi")
+
+    val javalinRouting = "5.5.0-RC.3"
+    api("io.javalin.community.routing:routing-dsl:$javalinRouting")
 
     val bcrypt = "0.10.2"
     implementation("at.favre.lib:bcrypt:$bcrypt")
 
-    val expressible = "1.3.1"
+    val expressible = "1.3.5"
     api("org.panda-lang:expressible:$expressible")
     api("org.panda-lang:expressible-kt:$expressible")
     testImplementation("org.panda-lang:expressible-junit:$expressible")
@@ -61,14 +65,16 @@ dependencies {
     api("net.dzikoysk:cdn:$cdn")
     api("net.dzikoysk:cdn-kt:$cdn")
 
-    val picocli = "4.7.1"
+    val picocli = "4.7.4"
     kapt("info.picocli:picocli-codegen:$picocli")
     api("info.picocli:picocli:$picocli")
 
-    val awssdk = "2.20.14"
+    val awssdk = "2.20.97"
     implementation(platform("software.amazon.awssdk:bom:$awssdk"))
     implementation("software.amazon.awssdk:s3:$awssdk")
-    testImplementation("com.amazonaws:aws-java-sdk-s3:1.12.429")
+
+    val awsSdkV1 = "1.12.486"
+    testImplementation("com.amazonaws:aws-java-sdk-s3:$awsSdkV1")
 
     val exposed = "0.41.1"
     api("org.jetbrains.exposed:exposed-core:$exposed")
@@ -77,24 +83,24 @@ dependencies {
     api("org.jetbrains.exposed:exposed-java-time:$exposed")
     // Drivers
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("org.xerial:sqlite-jdbc:3.40.1.0")
-    implementation("mysql:mysql-connector-java:8.0.32")
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.1.2")
+    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
+    implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.1.4")
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("com.h2database:h2:2.1.214")
 
-    val exposedUpsert = "1.1.0"
+    val exposedUpsert = "1.2.1"
     api("net.dzikoysk:exposed-upsert:$exposedUpsert")
 
-    val jackson = "2.14.2"
+    val jackson = "2.15.2"
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jackson")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jackson")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson")
 
-    val jsonSchema = "4.29.0"
+    val jsonSchema = "4.31.1"
     implementation("com.github.victools:jsonschema-generator:$jsonSchema")
 
-    val httpClient = "1.43.1"
+    val httpClient = "1.43.3"
     implementation("com.google.http-client:google-http-client:$httpClient") { exclude(group = "commons-codec", module = "commons-codec")}
     testImplementation("com.google.http-client:google-http-client-jackson2:$httpClient")
 
@@ -109,19 +115,20 @@ dependencies {
     implementation("com.reposilite:journalist-slf4j:$journalist")
     implementation("com.reposilite:journalist-tinylog:$journalist")
 
-    val tinylog = "2.6.1"
+    val tinylog = "2.6.2"
     implementation("org.tinylog:slf4j-tinylog:$tinylog")
     implementation("org.tinylog:tinylog-api:$tinylog")
     implementation("org.tinylog:tinylog-impl:$tinylog")
 
-    val testcontainers = "1.17.6"
+    val testcontainers = "1.18.3"
     testImplementation("org.testcontainers:postgresql:$testcontainers")
     testImplementation("org.testcontainers:mariadb:$testcontainers")
     testImplementation("org.testcontainers:testcontainers:$testcontainers")
     testImplementation("org.testcontainers:junit-jupiter:$testcontainers")
     testImplementation("org.testcontainers:localstack:$testcontainers")
+    testImplementation("org.testcontainers:mysql:$testcontainers")
 
-    val ldap = "6.0.7"
+    val ldap = "6.0.9"
     testImplementation("com.unboundid:unboundid-ldapsdk:$ldap")
 }
 
@@ -140,6 +147,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("org.xerial:sqlite-jdbc.*"))
         exclude(dependency("org.sqlite:.*"))
         exclude(dependency("mysql:.*"))
+        exclude(dependency("org.mariadb.jdbc:.*"))
         exclude(dependency("org.postgresql:.*"))
         exclude(dependency("org.h2:.*"))
         exclude(dependency("com.h2database:.*"))
@@ -170,19 +178,16 @@ publishing {
     }
 }
 
-tasks.register<Copy>("generateKotlin") {
-    inputs.property("version", version)
-    from("$projectDir/src/template/kotlin")
-    into("$projectDir/src/generated/kotlin")
-    filter(ReplaceTokens::class, "tokens" to mapOf("version" to version))
-}
-
-tasks.compileKotlin {
-    dependsOn("generateKotlin")
-}
-
-tasks.sourcesJar {
-    dependsOn("generateKotlin")
+tasks {
+    register<Copy>("generateKotlin") {
+        inputs.property("version", version)
+        from("$projectDir/src/template/kotlin")
+        into("$projectDir/src/generated/kotlin")
+        filter(ReplaceTokens::class, "tokens" to mapOf("version" to version))
+    }
+    compileKotlin { dependsOn("generateKotlin") }
+    sourcesJar { dependsOn("generateKotlin") }
+    kotlinSourcesJar { dependsOn("generateKotlin") }
 }
 
 kotlin.sourceSets.main {

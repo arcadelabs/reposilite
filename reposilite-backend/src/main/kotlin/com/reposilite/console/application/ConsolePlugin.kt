@@ -78,12 +78,11 @@ internal class ConsolePlugin : ReposilitePlugin() {
         if (!parameters().testEnv) {
             event { _: ReposiliteStartedEvent ->
                 reposilite().ioService.execute {
-                    consoleFacade.executeCommand("help")
-                    logger.info("")
                     logger.info("Collecting status metrics...")
                     logger.info("")
                     consoleFacade.executeCommand("status")
                     logger.info("")
+                    logger.info("For help, type 'help' or '?'")
                 }
             }
         }
